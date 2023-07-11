@@ -14,9 +14,7 @@ import { LoadingOutlined, RedoOutlined } from "@ant-design/icons";
 
 import { observer } from "mobx-react-lite";
 import LoadingStore from "../Store/LoadingStore";
-import RerenderStore from "../Store/RerenderStore";
 import ArrayPostsStore from "../Store/ArrayPostsStore";
-import ActivePageStore from "../Store/ActivePageStore";
 
 export const MainPage: React.FC = observer(() => {
   const getData = async () => {
@@ -68,7 +66,7 @@ export const MainPage: React.FC = observer(() => {
 
   useEffect(() => {
     getData();
-  }, [RerenderStore.rerender]);
+  }, []);
 
   return (
     <Content>
@@ -79,8 +77,8 @@ export const MainPage: React.FC = observer(() => {
           style={{ width: 300, margin: 5 }}
           onClick={(e) => {
             e.preventDefault();
+            getData();
             LoadingStore.setLoading();
-            RerenderStore.setRerender();
           }}
         >
           {LoadingStore.loading
@@ -95,11 +93,7 @@ export const MainPage: React.FC = observer(() => {
         ) : (
           ArrayPostsStore.postsArray.map((item) => {
             return (
-              <Link
-                to={`/post_${item?.id}`}
-                key={item?.title + item?.time}
-                onClick={() => ActivePageStore.setActiveId(item.id)}
-              >
+              <Link to={`/post_${item?.id}`} key={item?.title + item?.time}>
                 <Post
                   title={item?.title}
                   by={item?.by}

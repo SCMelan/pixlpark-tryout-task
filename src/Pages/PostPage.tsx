@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { SetStateAction, useEffect, useState } from "react";
 
 import axios from "axios";
 import { Link } from "react-router-dom";
@@ -10,18 +10,26 @@ import { Content } from "antd/es/layout/layout";
 import { observer } from "mobx-react-lite";
 import { Comment } from "../Components";
 
-import ActivePageStore from "../Store/ActivePageStore";
 import LoadingStore from "../Store/LoadingStore";
 import PostPageStore from "../Store/PostPageStore";
 import PostPageCommentsStore from "../Store/PostPageCommentsStore";
 
 export const PostPage: React.FC = observer(() => {
-  const [quantityComments, setQuantityComments] = useState(0); //используются для получения кол-ва комментариев после обновления комментариев в компоненте
+  const [quantityComments, setQuantityComments] = useState(0);
+
+  //--------------------------------------------------------------
+  //Функция получает ID для передачи в асинхронный запрос, стоит переделать на регулярное выражение
+  const getId = () => {
+    const id = window.location.pathname;
+    return id.split("").splice(6, id.length).join("");
+  };
+  const id = getId();
+  //--------------------------------------------------------------
+
+  //--------------------------------------------------------------
   const getData = async () => {
     await axios
-      .get(
-        `https://hacker-news.firebaseio.com/v0/item/${ActivePageStore.id}.json?print=pretty`
-      )
+      .get(`https://hacker-news.firebaseio.com/v0/item/${id}.json?print=pretty`)
       .then((res) => {
         const localeRes = { ...res.data };
         localeRes.localeDate = new Date(localeRes.time * 1000).toLocaleString();
@@ -31,15 +39,17 @@ export const PostPage: React.FC = observer(() => {
       })
       .catch((err) => console.log(err));
   };
+  //--------------------------------------------------------------
 
+  //--------------------------------------------------------------
   const getQuantityComments = () =>
     axios
-      .get(
-        `https://hacker-news.firebaseio.com/v0/item/${ActivePageStore.id}.json?print=pretty`
-      )
+      .get(`https://hacker-news.firebaseio.com/v0/item/${id}.json?print=pretty`)
       .then((res) => setQuantityComments(res.data.descendants))
       .catch((err) => console.log(err));
+  //--------------------------------------------------------------
 
+  //--------------------------------------------------------------
   const getRootComments = async () => {
     const localComments: IComment[] = [];
     PostPageCommentsStore.setClearAllPosts();
@@ -63,12 +73,15 @@ export const PostPage: React.FC = observer(() => {
       localComments.sort((a, b) => b.time! - a.time!)
     );
   };
+  //--------------------------------------------------------------
 
+  //--------------------------------------------------------------
   useEffect(() => {
     getData().then(() => {
       if (PostPageStore.PostPageStore.kids?.length) getRootComments();
     });
   }, []);
+  //--------------------------------------------------------------
 
   return (
     <Content
@@ -87,7 +100,6 @@ export const PostPage: React.FC = observer(() => {
                 margin: 5,
               }}
               onClick={() => {
-                ActivePageStore.removeActiveId();
                 PostPageStore.removePostPage();
                 LoadingStore.setLoading();
               }}
